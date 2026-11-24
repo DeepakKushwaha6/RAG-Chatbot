@@ -381,3 +381,7 @@ reach both documents, and that an out-of-scope question is refused.
 - The server binds to `127.0.0.1` by default. Set `RAG_HOST=0.0.0.0` to expose
   it on your network — it has no authentication, so only do that on a trusted
   network.
+
+## License
+
+[MIT](LICENSE) © 2026 Deepak Kushwaha. Use it, fork it, ship it.

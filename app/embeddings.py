@@ -37,7 +37,11 @@ def _download_model() -> None:
     if not archive.exists():
         urllib.request.urlretrieve(MODEL_URL, archive)  # noqa: S310
     with tarfile.open(archive) as tar:
-        tar.extractall(MODEL_DIR.parent)  # noqa: S202
+        try:
+            # "data" is the safe extraction filter (Python 3.12+).
+            tar.extractall(MODEL_DIR.parent, filter="data")
+        except TypeError:  # pragma: no cover - Python < 3.12
+            tar.extractall(MODEL_DIR.parent)  # noqa: S202
 
 
 def _load() -> None:

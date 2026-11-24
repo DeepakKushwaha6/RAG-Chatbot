@@ -246,8 +246,10 @@ platform does the hosting and you get a URL like
 
 1. Push this repo to GitHub (done — `DeepakKushwaha6/RAG-Chatbot`).
 2. Go to <https://share.streamlit.io> and sign in with GitHub.
-3. **New app → Deploy from GitHub** → pick `DeepakKushwaha6/RAG-Chatbot`.
-4. Open **Settings → Secrets** and add:
+3. **New app → Deploy from GitHub** → owner `DeepakKushwaha6`, repository
+   `RAG-Chatbot`, branch `main`. Streamlit detects `streamlit_app.py` at the
+   repository root automatically.
+4. Open the app's **Settings → Secrets** and add:
 
    ```toml
    OPENROUTER_API_KEY = "sk-or-v1-..."
@@ -257,8 +259,16 @@ platform does the hosting and you get a URL like
    `OPENROUTER_API_KEY` makes the app use the best free OpenRouter model
    available at request time. Leave the provider unset (or set it to `none`)
    for a zero-cost extractive deployment where visitors cannot spend your key.
-5. **Deploy**. The first build installs the dependencies and downloads the
-   ~80 MB embedding model; later rebuilds are much faster.
+5. Save the secrets and **Rerun** the app.
+
+Two things worth knowing:
+
+- **The first question is slow.** The ~80 MB embedding model is downloaded on
+  first use (it is not bundled in the repo, unlike the Docker image). After
+  that it is cached in the container.
+- **Every visitor is isolated.** Each browser session gets its own index under
+  `data/sessions/`, so nobody can see the documents another visitor uploaded.
+  Idle session folders are swept after six hours.
 
 Secrets are read from Streamlit's secret store and injected into the
 environment before the app starts, so the key never lives in the repository.

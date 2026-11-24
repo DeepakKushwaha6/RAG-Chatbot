@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DocuMind — RAG Chatbot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="/static/styles.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>" />
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <header class="sidebar-head">
+      <div class="brand">
+        <span class="brand-mark">◈</span>
+        <div>
+          <h1>DocuMind</h1>
+          <p>RAG chatbot over your documents</p>
+        </div>
+      </div>
+      <button id="newChat" class="btn ghost small" title="Start a new conversation">+ New chat</button>
+    </header>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Documents</h2>
+        <span id="docCount" class="pill">0</span>
+      </div>
+      <label id="dropzone" class="dropzone">
+        <input type="file" id="fileInput" class="visually-hidden" multiple />
+        <span class="dz-icon">⇪</span>
+        <span class="dz-title">Drop files here</span>
+        <span class="dz-sub">or click to browse</span>
+        <span class="dz-formats">PDF · DOCX · PPTX · XLSX · CSV · TXT · MD · HTML · JSON</span>
+      </label>
+      <div id="uploadStatus" class="upload-status"></div>
+      <ul id="docList" class="doc-list"></ul>
+      <div class="sidebar-foot">
+        <button id="clearAll" class="btn ghost tiny danger">Clear all documents</button>
+      </div>
+    </section>
+
+    <section class="panel grow">
+      <div class="panel-head"><h2>Sources</h2></div>
+      <div id="sourcePanel" class="source-panel">
+        <p class="muted small">Sources appear here with the exact passage used to answer.</p>
+      </div>
+    </section>
+
+    <footer class="sidebar-foot">
+      <span id="llmStatus" class="status-dot">●</span>
+      <span id="llmLabel" class="muted small">checking engine…</span>
+    </footer>
+  </aside>
+
+  <main class="chat">
+    <header class="chat-head">
+      <div>
+        <h2>Chat</h2>
+        <p id="chatSubtitle" class="muted small">Upload a document to start asking questions.</p>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="scopeToggle" checked />
+        <span>Search all documents</span>
+      </label>
+    </header>
+
+    <div id="messages" class="messages">
+      <div class="welcome" id="welcome">
+        <div class="welcome-mark">◈</div>
+        <h3>Ask anything about your documents</h3>
+        <p>Upload a PDF, Word, PowerPoint, Excel, CSV or text file on the left, then ask a question. Answers are generated only from the uploaded content and every claim links back to its source passage.</p>
+        <div class="suggestions" id="suggestions">
+          <button class="chip">What is this document about?</button>
+          <button class="chip">Summarise the key points</button>
+          <button class="chip">List the main dates and figures</button>
+        </div>
+      </div>
+    </div>
+
+    <form id="chatForm" class="composer">
+      <div class="composer-inner">
+        <textarea id="input" rows="1" placeholder="Ask a question about your documents…"></textarea>
+        <button type="submit" id="sendBtn" class="btn primary send" aria-label="Send">➤</button>
+      </div>
+      <p class="hint muted small">Answers are grounded in the uploaded content. Uncheck “Search all documents” to focus on one file.</p>
+    </form>
+  </main>
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>

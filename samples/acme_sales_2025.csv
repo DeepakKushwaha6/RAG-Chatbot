@@ -1,0 +1,10 @@
+quarter,region,revenue_usd,target_usd,growth_pct
+Q1,North America,1250000,1200000,4.2
+Q1,Europe,980000,1100000,-10.9
+Q1,Asia Pacific,1430000,1300000,10.0
+Q2,North America,1380000,1300000,6.2
+Q2,Europe,1120000,1150000,-2.6
+Q2,Asia Pacific,1595000,1400000,13.9
+Q3,North America,1520000,1450000,4.8
+Q3,Europe,1275000,1200000,6.3
+Q3,Asia Pacific,1760000,1500000,17.3

@@ -1,0 +1,15 @@
+Acme Corporation Travel and Expense Policy
+Version 4.2, effective 1 March 2025.
+
+1. Reimbursement Limits
+Employees may claim up to 750 USD for hotel accommodation per night in standard cities, and up to 1200 USD per night in Tier 1 cities such as New York, London and Singapore. Any amount above these limits requires written approval from the Finance Director.
+Meal expenses are reimbursed up to 60 USD per day. Alcohol is not reimbursable except at client entertainment events, where the cap is 90 USD per head.
+
+2. Flight Booking
+All flights longer than 6 hours must be booked in Economy Premium class. Flight tickets must be booked at least 14 days in advance to qualify for full reimbursement. Flexible or refundable tickets are only reimbursed for flights cancelled due to illness or company emergency.
+
+3. Approval Process
+Every expense claim above 500 USD must be approved by the employee's line manager before submission to Accounts Payable. Claims above 5000 USD additionally require approval from a Director. Submission deadlines are 30 days after the expense date; claims older than 90 days are automatically rejected.
+
+4. Contact
+Questions about this policy should be directed to the Travel Desk at travel@acme.example or extension 4412. The Travel Desk operates Monday to Friday, 09:00 to 18:00 IST.

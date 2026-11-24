@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Runtime state: uploaded files, the persisted index, server logs and pid file.
+# These can contain private documents - never commit them.
+data/
+
+# Local caches / OS noise
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

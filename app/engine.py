@@ -35,12 +35,35 @@ class RAGEngine:
         self._provider = None
         self._provider_note = ""
         self._provider_checked = False
+        self._provider_built_at = 0.0
 
     # ------------------------------------------------------------- provider
     def provider(self):
+        """Return the active LLM provider, rebuilding it when it goes stale.
+
+        The provider is not cached forever: OpenRouter rotates its free model
+        lineup, so the selection is re-evaluated periodically and the app
+        follows whichever free model is best at that moment.
+        """
+
+        now = time.time()
         if not self._provider_checked:
             self._provider, self._provider_note = llm.build_provider()
             self._provider_checked = True
+            self._provider_built_at = now
+            return self._provider
+
+        label = getattr(self._provider, "label", "") or ""
+        if label == "openrouter":
+            ttl = max(settings.openrouter_refresh_seconds, 60)
+        elif self._provider is None:
+            ttl = 60
+        else:
+            ttl = 3600
+
+        if now - self._provider_built_at > ttl:
+            self._provider, self._provider_note = llm.build_provider()
+            self._provider_built_at = now
         return self._provider
 
     def provider_status(self) -> dict:

@@ -52,6 +52,20 @@ class Settings:
         default_factory=lambda: _env("OPENAI_BASE_URL", "https://api.openai.com/v1")
     )
     openai_model: str = field(default_factory=lambda: _env("OPENAI_MODEL", "gpt-4o-mini"))
+
+    # OpenRouter - the app auto-selects the best free model it offers
+    openrouter_api_key: str = field(default_factory=lambda: _env("OPENROUTER_API_KEY"))
+    openrouter_base_url: str = field(
+        default_factory=lambda: _env("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+    )
+    openrouter_model: str = field(default_factory=lambda: _env("OPENROUTER_MODEL"))
+    openrouter_refresh_seconds: int = field(
+        default_factory=lambda: _env_int("OPENROUTER_REFRESH_SECONDS", 1800)
+    )
+    openrouter_referer: str = field(default_factory=lambda: _env("OPENROUTER_REFERER"))
+    openrouter_title: str = field(
+        default_factory=lambda: _env("OPENROUTER_TITLE", "DocuMind RAG Chatbot")
+    )
     ollama_base_url: str = field(
         default_factory=lambda: _env("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
     )

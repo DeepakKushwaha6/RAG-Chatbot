@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import shutil
 import time
 from pathlib import Path
 
@@ -13,11 +12,10 @@ from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from .chunking import chunk_sections
 from .config import settings
 from .engine import RAGEngine
-from .loaders import SUPPORTED_EXTENSIONS, UnsupportedDocument, is_supported, load_document
-from .models import Document, new_doc_id
+from .ingest import IngestError, clear_all, ingest_bytes, remove_document
+from .loaders import SUPPORTED_EXTENSIONS
 from .store import Store
 
 app = FastAPI(title="DocuMind RAG Chatbot", version="1.0.0")
@@ -100,64 +98,15 @@ async def upload_documents(files: list[UploadFile] = File(...)) -> dict:
     results: list[dict] = []
     for upload in files:
         filename = Path(upload.filename or "document").name
-        if not is_supported(filename):
-            results.append(
-                {
-                    "filename": filename,
-                    "ok": False,
-                    "error": (
-                        f"Unsupported file type. Supported: "
-                        f"{', '.join(sorted(SUPPORTED_EXTENSIONS))}"
-                    ),
-                }
-            )
-            continue
-
-        doc_id = new_doc_id(filename)
-        suffix = Path(filename).suffix.lower()
-        stored_path = settings.upload_dir / f"{doc_id}{suffix}"
-        with stored_path.open("wb") as buffer:
-            await run_in_threadpool(shutil.copyfileobj, upload.file, buffer)
-
+        data = await upload.read()
         try:
-            sections = await run_in_threadpool(load_document, stored_path)
-        except UnsupportedDocument as exc:
-            stored_path.unlink(missing_ok=True)
+            document = await run_in_threadpool(ingest_bytes, store, filename, data)
+        except IngestError as exc:
             results.append({"filename": filename, "ok": False, "error": str(exc)})
             continue
         except Exception as exc:  # noqa: BLE001
-            stored_path.unlink(missing_ok=True)
             results.append({"filename": filename, "ok": False, "error": f"Parse error: {exc}"})
             continue
-
-        if not sections:
-            stored_path.unlink(missing_ok=True)
-            results.append(
-                {"filename": filename, "ok": False, "error": "The document contains no readable text."}
-            )
-            continue
-
-        chunks = chunk_sections(sections, doc_id, filename)
-        if not chunks:
-            stored_path.unlink(missing_ok=True)
-            results.append(
-                {"filename": filename, "ok": False, "error": "No indexable content was found."}
-            )
-            continue
-
-        document = Document(
-            doc_id=doc_id,
-            filename=filename,
-            filetype=suffix.lstrip("."),
-            size_bytes=stored_path.stat().st_size,
-            added_at=time.time(),
-            pages=len(sections),
-            chunks=len(chunks),
-            characters=sum(len(s.text) for s in sections),
-            path=str(stored_path),
-            meta={"sections": len(sections)},
-        )
-        await run_in_threadpool(store.add_document, document, chunks)
         results.append({"filename": filename, "ok": True, "document": document.to_dict()})
 
     return {"results": results, "stats": store.stats()}
@@ -165,19 +114,14 @@ async def upload_documents(files: list[UploadFile] = File(...)) -> dict:
 
 @app.delete("/api/documents/{doc_id}")
 async def delete_document(doc_id: str) -> dict:
-    removed = store.remove_document(doc_id)
-    if not removed:
+    if not remove_document(store, doc_id):
         raise HTTPException(status_code=404, detail="Document not found.")
-    for path in settings.upload_dir.glob(f"{doc_id}.*"):
-        path.unlink(missing_ok=True)
     return {"ok": True, "stats": store.stats()}
 
 
 @app.post("/api/reset")
 async def reset() -> dict:
-    store.clear()
-    for path in settings.upload_dir.glob("*"):
-        path.unlink(missing_ok=True)
+    await run_in_threadpool(clear_all, store)
     return {"ok": True, "stats": store.stats()}
 
 

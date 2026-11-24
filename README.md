@@ -32,6 +32,16 @@ Then open **http://127.0.0.1:8000** in a browser.
 
 On Windows you can also double-click **`start.bat`**.
 
+The same engine also runs as a **Streamlit app** — this is the edition that
+deploys to Streamlit Community Cloud:
+
+```bash
+python -m streamlit run streamlit_app.py
+```
+
+Then open **http://127.0.0.1:8501**. Locally it reads the key from `.env`; on
+Streamlit Cloud it reads it from **Settings → Secrets**.
+
 To run it as a detached background service that survives closing the terminal:
 
 ```bash
@@ -126,15 +136,34 @@ unreadable rather than silently returning nothing.
 The answer wording needs an LLM. The app finds one automatically in this order:
 
 1. **MiniMax platform API** — set `MINIMAX_API_KEY` in `.env`.
-2. **MiniMax session token** — if you are signed in to MiniMax Code on this
+2. **OpenRouter** — set `OPENROUTER_API_KEY`. The app then asks OpenRouter which
+   models are **free right now** and uses the best one (see below).
+3. **MiniMax session token** — if you are signed in to MiniMax Code on this
    machine, the running session token is reused automatically (labelled
    `minimax-session` in the sidebar).
-3. **Any OpenAI-compatible endpoint** — set `OPENAI_API_KEY` (works with OpenAI,
+4. **Any OpenAI-compatible endpoint** — set `OPENAI_API_KEY` (works with OpenAI,
    Groq, Together, LM Studio, vLLM, …).
-4. **Local Ollama** — if a server is running on `OLLAMA_BASE_URL`.
-5. **Extractive fallback** — no LLM at all. The app returns the original
+5. **Local Ollama** — if a server is running on `OLLAMA_BASE_URL`.
+6. **Extractive fallback** — no LLM at all. The app returns the original
    matching sentences quoted verbatim from your documents, each with its source.
    Answers stay correct, they are just not rephrased.
+
+### Always using the best free model
+
+OpenRouter changes its free lineup constantly, so the app does not hard-code a
+model name. Every provider rebuild (and every `OPENROUTER_REFRESH_SECONDS`,
+default 1800) it:
+
+1. calls `GET /api/v1/models` and keeps the models whose prompt **and**
+   completion price are `0` and that are text-in/text-out chat models;
+2. ranks them — OpenRouter's own `openrouter/free` router first (it always
+   resolves to their current best free model), then a curated preference list,
+   then context length, then release date;
+3. uses the winner for the next answer.
+
+That means the app follows the free lineup as it changes instead of pinning a
+model that may be retired. The Streamlit sidebar has a **Free model selection**
+panel that lists the live lineup and lets you refresh it on demand.
 
 Copy `.env.example` to `.env` to override anything:
 
@@ -144,7 +173,10 @@ cp .env.example .env
 
 | Variable | Purpose |
 |----------|---------|
-| `RAG_LLM_PROVIDER` | `auto` (default), `minimax`, `openai`, `ollama` |
+| `RAG_LLM_PROVIDER` | `auto` (default), `openrouter`, `minimax`, `openai`, `ollama`, `none` |
+| `OPENROUTER_API_KEY` | OpenRouter key — enables the free-model auto-selection |
+| `OPENROUTER_MODEL` | Pin a specific model instead of auto-selecting |
+| `OPENROUTER_REFRESH_SECONDS` | How often to re-check the free lineup (default 1800) |
 | `MINIMAX_API_KEY` | MiniMax platform key |
 | `MINIMAX_MODEL` | Default `MiniMax-M3.1-Flash` |
 | `OPENAI_API_KEY` / `OPENAI_BASE_URL` / `OPENAI_MODEL` | OpenAI-compatible provider |
@@ -153,6 +185,10 @@ cp .env.example .env
 | `RAG_CHUNK_CHARS` / `RAG_CHUNK_OVERLAP` | Chunk size and overlap |
 | `RAG_MAX_CONTEXT_CHARS` | Context budget sent to the LLM |
 | `RAG_HOST` / `RAG_PORT` | Server bind address (default 127.0.0.1:8000) |
+| `RAG_DATA_DIR` | Where uploads and the index are written |
+
+`RAG_LLM_PROVIDER=none` forces extractive mode: answers quote the original
+passages verbatim and no API key can be spent by anyone.
 
 ---
 
@@ -199,14 +235,39 @@ curl -X POST http://127.0.0.1:8000/api/chat \
 
 ## Deploy it free (no domain needed)
 
-The repo is ready to deploy as a container. Both options below give you a
-public URL on a free subdomain — no domain purchase, no credit card.
+Every option below gives you a public URL on a free subdomain — no domain
+purchase, no credit card.
 
-### 1. Hugging Face Spaces — recommended
+### 1. Streamlit Community Cloud — recommended
 
-Best fit for this app: free **CPU Basic (2 vCPU, 16 GB RAM)**, public spaces
-stay warm (no cold start), persistent disk available, and it serves
-`https://<you>-<space>.hf.space`.
+The repo ships a complete Streamlit front end (`streamlit_app.py`), so the
+platform does the hosting and you get a URL like
+`https://<your-username>-rag-chatbot.streamlit.app`.
+
+1. Push this repo to GitHub (done — `DeepakKushwaha6/RAG-Chatbot`).
+2. Go to <https://share.streamlit.io> and sign in with GitHub.
+3. **New app → Deploy from GitHub** → pick `DeepakKushwaha6/RAG-Chatbot`.
+4. Open **Settings → Secrets** and add:
+
+   ```toml
+   OPENROUTER_API_KEY = "sk-or-v1-..."
+   RAG_LLM_PROVIDER = "openrouter"
+   ```
+
+   `OPENROUTER_API_KEY` makes the app use the best free OpenRouter model
+   available at request time. Leave the provider unset (or set it to `none`)
+   for a zero-cost extractive deployment where visitors cannot spend your key.
+5. **Deploy**. The first build installs the dependencies and downloads the
+   ~80 MB embedding model; later rebuilds are much faster.
+
+Secrets are read from Streamlit's secret store and injected into the
+environment before the app starts, so the key never lives in the repository.
+
+### 2. Hugging Face Spaces
+
+Best fit for the FastAPI + custom-UI edition: free **CPU Basic (2 vCPU,
+16 GB RAM)**, public spaces stay warm (no cold start), persistent disk
+available, and it serves `https://<you>-<space>.hf.space`.
 
 1. Go to <https://huggingface.co/new-space> and pick **Docker** as the SDK.
 2. Connect it to your GitHub repo `DeepakKushwaha6/RAG-Chatbot`.
@@ -216,7 +277,7 @@ stay warm (no cold start), persistent disk available, and it serves
 The `Dockerfile` bakes the embedding model into the image, so the app starts
 without downloading anything.
 
-### 2. Render
+### 3. Render
 
 The included `render.yaml` is a ready-made blueprint:
 
@@ -229,15 +290,16 @@ spin down after 15 idle minutes, so the next visitor waits for a cold start.
 
 ### The LLM key decision
 
-Both platforms are free for *hosting*. The language model is a separate
+All three platforms are free for *hosting*. The language model is a separate
 question:
 
 - **No key set** → the app runs in **extractive mode**: it returns the original
   matching sentences from your document, quoted verbatim with citations.
   Perfectly correct, zero cost, and nobody can exhaust your quota.
-- **Key set** (`MINIMAX_API_KEY` or `OPENAI_API_KEY` in the platform's
-  environment variables) → full generated answers. But it is *your* key: every
-  visitor spends from it, so add a spend cap on the provider dashboard.
+- **Key set** (`OPENROUTER_API_KEY`, `MINIMAX_API_KEY` or `OPENAI_API_KEY` in the
+  platform's environment variables / secrets) → full generated answers. But it
+  is *your* key: every visitor spends from it, so add a spend cap on the
+  provider dashboard, or use only free models (the default OpenRouter path).
 
 For a public demo, start without a key. The sidebar shows which mode is live.
 
@@ -245,6 +307,8 @@ For a public demo, start without a key. The sidebar shows which mode is live.
 
 | Variable | Where | Purpose |
 |----------|-------|---------|
+| `OPENROUTER_API_KEY` | Streamlit secrets / Spaces secrets | Free OpenRouter models |
+| `RAG_LLM_PROVIDER` | same | `openrouter`, `auto`, or `none` (extractive) |
 | `RAG_DATA_DIR` | `/data` (container) | Where uploads + index are written |
 | `PORT` | set by the platform | Port to listen on (7860 Spaces, 10000 Render) |
 | `RAG_HOST` | `0.0.0.0` (container) | Bind address |
@@ -263,11 +327,15 @@ app/
   embeddings.py   local ONNX MiniLM embeddings
   store.py        persistent index + hybrid dense/BM25 search
   engine.py       retrieve → ground → answer → verify
-  llm.py          MiniMax / OpenAI / Ollama providers
+  llm.py          MiniMax / OpenRouter / OpenAI / Ollama providers
+  openrouter.py   OpenRouter provider + live free-model discovery
   prompts.py      grounded-answer prompt
+  ingest.py       shared upload / remove / clear logic
   main.py         FastAPI app and routes
   cli.py          terminal interface
 web/              ChatGPT-style frontend (vanilla JS, no build step)
+streamlit_app.py  Streamlit front end (the Streamlit Community Cloud entry point)
+.streamlit/       Streamlit theme + upload settings
 tests/            end-to-end pipeline, HTTP and container tests
 data/             uploaded files + index (created at runtime)
 Dockerfile        container image (embedding model baked in)

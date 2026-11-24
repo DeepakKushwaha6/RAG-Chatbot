@@ -367,6 +367,18 @@ def build_provider():
             )
             return provider, f"minimax:{settings.minimax_model}"
 
+    if choice in {"openrouter", "auto"} and settings.openrouter_api_key:
+        from . import openrouter
+
+        model, reason = openrouter.select_best_free_model()
+        if model:
+            provider = openrouter.OpenRouterProvider(
+                api_key=settings.openrouter_api_key,
+                base_url=settings.openrouter_base_url,
+                model=model,
+            )
+            return provider, f"openrouter:{model} ({reason})"
+
     if choice in {"minimax", "auto"}:
         token, base_url = _runtime_token()
         if token:

@@ -77,9 +77,11 @@ def tokenize(text: str) -> list[str]:
 class Store:
     """Thread-safe in-memory index with on-disk persistence."""
 
-    def __init__(self, index_dir: Path | None = None) -> None:
+    def __init__(self, index_dir: Path | None = None, upload_dir: Path | None = None) -> None:
         self.index_dir = index_dir or settings.index_dir
+        self.upload_dir = upload_dir or settings.upload_dir
         self.index_dir.mkdir(parents=True, exist_ok=True)
+        self.upload_dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
         self.documents: dict[str, Document] = {}
         self.chunks: list[Chunk] = []

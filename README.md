@@ -10,6 +10,8 @@ pinned: false
 
 # DocuMind — RAG Chatbot over Your Own Documents
 
+[![CI](https://github.com/DeepakKushwaha6/RAG-Chatbot/actions/workflows/ci.yml/badge.svg)](https://github.com/DeepakKushwaha6/RAG-Chatbot/actions/workflows/ci.yml)
+
 Upload a document (PDF, Word, PowerPoint, Excel, CSV, TXT, Markdown, HTML, JSON…),
 ask any question about it, and get an answer that is **generated only from the
 uploaded content**, with every claim linked back to the exact source passage.

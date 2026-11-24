@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Pipeline (no API key needed)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Cache the embedding model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/chroma
+          key: onnx-all-minilm-l6-v2-${{ runner.os }}-${{ hashfiles('app/embeddings.py') }}
+
+      - name: Byte-compile every source file
+        run: python -m compileall -q app streamlit_app.py run.py serve.py
+
+      - name: Run the end-to-end container test
+        # test_container.py starts the server on a free port with
+        # RAG_LLM_PROVIDER=none, so it needs no API key and no secrets.
+        run: python tests/test_container.py
+
+      - name: Run the retrieval test
+        run: python tests/test_retrieval.py

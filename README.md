@@ -12,6 +12,14 @@ pinned: false
 
 [![CI](https://github.com/DeepakKushwaha6/RAG-Chatbot/actions/workflows/ci.yml/badge.svg)](https://github.com/DeepakKushwaha6/RAG-Chatbot/actions/workflows/ci.yml)
 
+**🚀 Live demo → [rag-chatbot-nra3fmwrwyv6xzekdtsmzk.streamlit.app](https://rag-chatbot-nra3fmwrwyv6xzekdtsmzk.streamlit.app/)**
+
+Hosted on Streamlit Community Cloud. It runs on the best **free** OpenRouter
+model available at request time, and every visitor gets an isolated document
+set.
+
+![The live app answering a question from an uploaded travel policy](docs/screenshot.png)
+
 Upload a document (PDF, Word, PowerPoint, Excel, CSV, TXT, Markdown, HTML, JSON…),
 ask any question about it, and get an answer that is **generated only from the
 uploaded content**, with every claim linked back to the exact source passage.
@@ -240,11 +248,15 @@ curl -X POST http://127.0.0.1:8000/api/chat \
 Every option below gives you a public URL on a free subdomain — no domain
 purchase, no credit card.
 
-### 1. Streamlit Community Cloud — recommended
+### 1. Streamlit Community Cloud — recommended · **live**
+
+> **Deployed:** <https://rag-chatbot-nra3fmwrwyv6xzekdtsmzk.streamlit.app/>
 
 The repo ships a complete Streamlit front end (`streamlit_app.py`), so the
 platform does the hosting and you get a URL like
 `https://<your-username>-rag-chatbot.streamlit.app`.
+
+To deploy your own copy:
 
 1. Push this repo to GitHub (done — `DeepakKushwaha6/RAG-Chatbot`).
 2. Go to <https://share.streamlit.io> and sign in with GitHub.
@@ -349,6 +361,7 @@ web/              ChatGPT-style frontend (vanilla JS, no build step)
 streamlit_app.py  Streamlit front end (the Streamlit Community Cloud entry point)
 .streamlit/       Streamlit theme + upload settings
 tests/            end-to-end pipeline, HTTP and container tests
+docs/             screenshot of the live app
 data/             uploaded files + index (created at runtime)
 Dockerfile        container image (embedding model baked in)
 render.yaml       Render blueprint for the free plan

@@ -22,6 +22,16 @@ Then open **http://127.0.0.1:8000** in a browser.
 
 On Windows you can also double-click **`start.bat`**.
 
+To run it as a detached background service that survives closing the terminal:
+
+```bash
+python serve.py            # start (no-op if already running)
+python serve.py --status   # is it up?
+python serve.py --stop     # stop it
+```
+
+Logs are written to `data/server.log`.
+
 The first run downloads the ~80 MB embedding model once; after that everything
 except the LLM call works offline.
 
@@ -156,6 +166,8 @@ python -m app.cli clear
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
 | `GET` | `/api/health` | Status, index stats, active LLM provider |
+| `GET` | `/health` | Same as `/api/health` (alias for monitoring) |
+| `GET` | `/v1/models` | OpenAI-compatible model list |
 | `GET` | `/api/documents` | List indexed documents |
 | `POST` | `/api/documents` | Upload (multipart, field name `files`) |
 | `DELETE` | `/api/documents/{doc_id}` | Remove one document |

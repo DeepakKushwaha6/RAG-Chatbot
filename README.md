@@ -268,8 +268,11 @@ app/
   main.py         FastAPI app and routes
   cli.py          terminal interface
 web/              ChatGPT-style frontend (vanilla JS, no build step)
-tests/            end-to-end pipeline and HTTP tests
+tests/            end-to-end pipeline, HTTP and container tests
 data/             uploaded files + index (created at runtime)
+Dockerfile        container image (embedding model baked in)
+render.yaml       Render blueprint for the free plan
+serve.py          run the server detached, with --status/--stop
 ```
 
 ---
@@ -280,6 +283,7 @@ data/             uploaded files + index (created at runtime)
 python tests/test_pipeline.py    # builds sample docs, asks 12 questions, checks answers
 python run.py                    # then, in another shell:
 python tests/test_server.py      # upload → chat → stream → delete over HTTP
+python tests/test_container.py   # container runtime path: PORT, RAG_DATA_DIR, no-LLM mode
 ```
 
 `test_pipeline.py` generates its own sample PDF/DOCX/PPTX/CSV/TXT, indexes them,

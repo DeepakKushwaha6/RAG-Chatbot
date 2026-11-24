@@ -25,10 +25,18 @@ WORK = ROOT / "data" / "_test"
 
 
 def build_samples() -> list[Path]:
+    """Create the sample documents if they are missing.
+
+    They are committed to the repository, so they are only generated once. If
+    they were rewritten on every run the binaries (PDF/DOCX/PPTX embed a
+    creation timestamp) would show up as modified in git every time.
+    """
+
     SAMPLES.mkdir(parents=True, exist_ok=True)
 
     txt = SAMPLES / "acme_policy.txt"
-    txt.write_text(
+    if not txt.exists():
+        txt.write_text(
         "Acme Corporation Travel and Expense Policy\n"
         "Version 4.2, effective 1 March 2025.\n\n"
         "1. Reimbursement Limits\n"
@@ -54,7 +62,8 @@ def build_samples() -> list[Path]:
     )
 
     csv = SAMPLES / "acme_sales_2025.csv"
-    csv.write_text(
+    if not csv.exists():
+        csv.write_text(
         "quarter,region,revenue_usd,target_usd,growth_pct\n"
         "Q1,North America,1250000,1200000,4.2\n"
         "Q1,Europe,980000,1100000,-10.9\n"
@@ -70,98 +79,100 @@ def build_samples() -> list[Path]:
 
     docx_path = SAMPLES / "acme_handbook.docx"
     try:
-        import docx
+        if not docx_path.exists():
+            import docx
 
-        document = docx.Document()
-        document.add_heading("Acme Corporation Employee Handbook", level=1)
-        document.add_paragraph("Section 4 - Leave Policy. Approved 12 January 2025.")
-        document.add_paragraph(
-            "Annual leave accrues at 18 days per year for employees with less than 3 years of "
-            "service, and increases to 24 days after 3 years and to 30 days after 8 years."
-        )
-        document.add_paragraph(
-            "Sick leave is a separate entitlement of 12 days per year and cannot be carried over "
-            "into the following calendar year."
-        )
-        document.add_heading("Probation and Notice", level=2)
-        document.add_paragraph(
-            "The probation period is 6 months. During probation either party may terminate the "
-            "employment with 15 days written notice. After probation the notice period is 60 days "
-            "for the employee and 90 days for the employer."
-        )
-        document.save(docx_path)
+            document = docx.Document()
+            document.add_heading("Acme Corporation Employee Handbook", level=1)
+            document.add_paragraph("Section 4 - Leave Policy. Approved 12 January 2025.")
+            document.add_paragraph(
+                "Annual leave accrues at 18 days per year for employees with less than 3 years of "
+                "service, and increases to 24 days after 3 years and to 30 days after 8 years."
+            )
+            document.add_paragraph(
+                "Sick leave is a separate entitlement of 12 days per year and cannot be carried over "
+                "into the following calendar year."
+            )
+            document.add_heading("Probation and Notice", level=2)
+            document.add_paragraph(
+                "The probation period is 6 months. During probation either party may terminate the "
+                "employment with 15 days written notice. After probation the notice period is 60 days "
+                "for the employee and 90 days for the employer."
+            )
+            document.save(docx_path)
     except Exception as exc:  # noqa: BLE001
         print(f"! docx sample skipped: {exc}")
 
     pdf_path = SAMPLES / "acme_security.pdf"
     try:
-        from reportlab.lib.pagesizes import A4
-        from reportlab.pdfgen import canvas
+        if not pdf_path.exists():
+            from reportlab.lib.pagesizes import A4
+            from reportlab.pdfgen import canvas
 
-        pdf = canvas.Canvas(str(pdf_path), pagesize=A4)
-        width, height = A4
-        page_one = [
-            "Acme Corporation Information Security Standard",
-            "Version 2.1, issued 8 April 2025.",
-            "",
-            "1. Password Policy",
-            "All corporate passwords must be at least 14 characters long and must",
-            "include a mix of uppercase letters, lowercase letters, digits and",
-            "symbols. Passwords expire every 90 days and cannot be reused within",
-            "the previous 12 passwords. Multi-factor authentication is mandatory",
-            "for all systems that contain customer payment data.",
-            "",
-            "2. Data Classification",
-            "Data is classified into four tiers: Public, Internal, Confidential",
-            "and Restricted. Confidential data includes payroll records, customer",
-            "identifiers and unreleased product roadmaps. Restricted data is",
-            "limited to named individuals with a business need.",
-            "",
-            "3. Incident Response",
-            "Suspected security incidents must be reported to the Security Desk",
-            "within 1 hour of discovery. The Security Desk operates a 24x7",
-            "on-call rota and guarantees an initial response within 30 minutes.",
-        ]
-        text_obj = pdf.beginText(40, height - 50)
-        for line in page_one:
-            text_obj.textLine(line)
-        pdf.drawText(text_obj)
-        pdf.showPage()
-        page_two = [
-            "4. Third-Party Assessments",
-            "Any third party that stores Acme customer data must pass an",
-            "independent SOC 2 Type II audit before contract signature and",
-            "must renew it annually. Vendors that cannot produce a current",
-            "SOC 2 report are restricted to synthetic, anonymised test data.",
-            "",
-            "5. Encryption Standards",
-            "Data at rest must be encrypted with AES-256. Data in transit must",
-            "use TLS 1.3 for all external endpoints and TLS 1.2 as the internal",
-            "minimum. Cryptographic keys are rotated every 24 months.",
-        ]
-        text_obj = pdf.beginText(40, height - 50)
-        for line in page_two:
-            text_obj.textLine(line)
-        pdf.drawText(text_obj)
-        pdf.save()
+            pdf = canvas.Canvas(str(pdf_path), pagesize=A4)
+            width, height = A4
+            page_one = [
+                "Acme Corporation Information Security Standard",
+                "Version 2.1, issued 8 April 2025.",
+                "",
+                "1. Password Policy",
+                "All corporate passwords must be at least 14 characters long and must",
+                "include a mix of uppercase letters, lowercase letters, digits and",
+                "symbols. Passwords expire every 90 days and cannot be reused within",
+                "the previous 12 passwords. Multi-factor authentication is mandatory",
+                "for all systems that contain customer payment data.",
+                "",
+                "2. Data Classification",
+                "Data is classified into four tiers: Public, Internal, Confidential",
+                "and Restricted. Confidential data includes payroll records, customer",
+                "identifiers and unreleased product roadmaps. Restricted data is",
+                "limited to named individuals with a business need.",
+                "",
+                "3. Incident Response",
+                "Suspected security incidents must be reported to the Security Desk",
+                "within 1 hour of discovery. The Security Desk operates a 24x7",
+                "on-call rota and guarantees an initial response within 30 minutes.",
+            ]
+            text_obj = pdf.beginText(40, height - 50)
+            for line in page_one:
+                text_obj.textLine(line)
+            pdf.drawText(text_obj)
+            pdf.showPage()
+            page_two = [
+                "4. Third-Party Assessments",
+                "Any third party that stores Acme customer data must pass an",
+                "independent SOC 2 Type II audit before contract signature and",
+                "must renew it annually. Vendors that cannot produce a current",
+                "SOC 2 report are restricted to synthetic, anonymised test data.",
+                "",
+                "5. Encryption Standards",
+                "Data at rest must be encrypted with AES-256. Data in transit must",
+                "use TLS 1.3 for all external endpoints and TLS 1.2 as the internal",
+                "minimum. Cryptographic keys are rotated every 24 months.",
+            ]
+            text_obj = pdf.beginText(40, height - 50)
+            for line in page_two:
+                text_obj.textLine(line)
+            pdf.drawText(text_obj)
+            pdf.save()
     except Exception as exc:  # noqa: BLE001
         print(f"! pdf sample skipped: {exc}")
 
     pptx_path = SAMPLES / "acme_roadmap.pptx"
     try:
-        from pptx import Presentation
-        from pptx.util import Inches
+        if not pptx_path.exists():
+            from pptx import Presentation
 
-        presentation = Presentation()
-        slide = presentation.slides.add_slide(presentation.slide_layouts[1])
-        slide.shapes.title.text = "Product Roadmap Q4 2025"
-        slide.placeholders[1].text = (
-            "Apollo analytics launches 15 October 2025. "
-            "Beta cohort of 40 enterprise customers."
-        )
-        slide2 = presentation.slides.add_slide(presentation.slide_layouts[5])
-        slide2.shapes.title.text = "Orion migration completes 20 December 2025"
-        presentation.save(pptx_path)
+            presentation = Presentation()
+            slide = presentation.slides.add_slide(presentation.slide_layouts[1])
+            slide.shapes.title.text = "Product Roadmap Q4 2025"
+            slide.placeholders[1].text = (
+                "Apollo analytics launches 15 October 2025. "
+                "Beta cohort of 40 enterprise customers."
+            )
+            slide2 = presentation.slides.add_slide(presentation.slide_layouts[5])
+            slide2.shapes.title.text = "Orion migration completes 20 December 2025"
+            presentation.save(pptx_path)
     except Exception as exc:  # noqa: BLE001
         print(f"! pptx sample skipped: {exc}")
 

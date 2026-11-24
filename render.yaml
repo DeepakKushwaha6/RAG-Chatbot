@@ -1,0 +1,22 @@
+# Render blueprint - deploy with: https://render.com/deploy
+#
+# The free plan gives a public URL (no domain needed) but the service spins
+# down after 15 minutes of inactivity, so the first request after a quiet
+# period takes a few seconds. Hugging Face Spaces is the better free option
+# for a permanently warm instance - see the README.
+services:
+  - type: web
+    name: documind-rag-chatbot
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: RAG_DATA_DIR
+        value: /var/data
+      - key: RAG_HOST
+        value: 0.0.0.0
+      # Add MINIMAX_API_KEY here to enable generated answers.
+      # Without it the app runs in extractive mode and quotes the original
+      # passages - still useful, and nobody can drain your quota.

@@ -351,6 +351,12 @@ def build_provider():
 
     choice = (settings.llm_provider or "auto").lower()
 
+    if choice == "none":
+        # Explicitly disable the LLM: answers are quoted verbatim from the
+        # documents. Useful for public deployments where nobody should be able
+        # to spend an API key, and for offline testing.
+        return None, "extractive"
+
     if choice in {"minimax", "auto"}:
         if settings.minimax_api_key:
             provider = AnthropicStyleProvider(

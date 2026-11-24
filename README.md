@@ -1,3 +1,13 @@
+---
+title: DocuMind RAG Chatbot
+emoji: 📄
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # DocuMind — RAG Chatbot over Your Own Documents
 
 Upload a document (PDF, Word, PowerPoint, Excel, CSV, TXT, Markdown, HTML, JSON…),
@@ -184,6 +194,61 @@ curl -X POST http://127.0.0.1:8000/api/chat \
   -H "Content-Type: application/json" \
   -d '{"message":"What is the expense claim deadline?","history":[],"doc_ids":null}'
 ```
+
+---
+
+## Deploy it free (no domain needed)
+
+The repo is ready to deploy as a container. Both options below give you a
+public URL on a free subdomain — no domain purchase, no credit card.
+
+### 1. Hugging Face Spaces — recommended
+
+Best fit for this app: free **CPU Basic (2 vCPU, 16 GB RAM)**, public spaces
+stay warm (no cold start), persistent disk available, and it serves
+`https://<you>-<space>.hf.space`.
+
+1. Go to <https://huggingface.co/new-space> and pick **Docker** as the SDK.
+2. Connect it to your GitHub repo `DeepakKushwaha6/RAG-Chatbot`.
+3. Set the space to **Public**, hardware to **CPU Basic**.
+4. Push the repo — the Space builds the `Dockerfile` and serves on port 7860.
+
+The `Dockerfile` bakes the embedding model into the image, so the app starts
+without downloading anything.
+
+### 2. Render
+
+The included `render.yaml` is a ready-made blueprint:
+
+```bash
+# or click: https://render.com/deploy
+```
+
+Give it a `Docker` runtime and the **Free** plan. It works, but free services
+spin down after 15 idle minutes, so the next visitor waits for a cold start.
+
+### The LLM key decision
+
+Both platforms are free for *hosting*. The language model is a separate
+question:
+
+- **No key set** → the app runs in **extractive mode**: it returns the original
+  matching sentences from your document, quoted verbatim with citations.
+  Perfectly correct, zero cost, and nobody can exhaust your quota.
+- **Key set** (`MINIMAX_API_KEY` or `OPENAI_API_KEY` in the platform's
+  environment variables) → full generated answers. But it is *your* key: every
+  visitor spends from it, so add a spend cap on the provider dashboard.
+
+For a public demo, start without a key. The sidebar shows which mode is live.
+
+### Environment variables for deployment
+
+| Variable | Where | Purpose |
+|----------|-------|---------|
+| `RAG_DATA_DIR` | `/data` (container) | Where uploads + index are written |
+| `PORT` | set by the platform | Port to listen on (7860 Spaces, 10000 Render) |
+| `RAG_HOST` | `0.0.0.0` (container) | Bind address |
+| `MINIMAX_API_KEY` | optional | Enables generated answers |
 
 ---
 

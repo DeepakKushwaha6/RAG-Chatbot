@@ -34,7 +34,9 @@ def _env_float(name: str, default: float) -> float:
 @dataclass
 class Settings:
     base_dir: Path = BASE_DIR
-    data_dir: Path = field(default_factory=lambda: BASE_DIR / "data")
+    data_dir: Path = field(
+        default_factory=lambda: Path(_env("RAG_DATA_DIR") or (BASE_DIR / "data"))
+    )
 
     # LLM providers
     llm_provider: str = field(default_factory=lambda: _env("RAG_LLM_PROVIDER", "auto"))
@@ -69,7 +71,7 @@ class Settings:
 
     # Server
     host: str = field(default_factory=lambda: _env("RAG_HOST", "127.0.0.1"))
-    port: int = field(default_factory=lambda: _env_int("RAG_PORT", 8000))
+    port: int = field(default_factory=lambda: _env_int("RAG_PORT", 0) or _env_int("PORT", 8000))
 
     @property
     def upload_dir(self) -> Path:
